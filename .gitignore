@@ -1,0 +1,36 @@
+# Виртуальное окружение (venv, env, .venv и т.д.)
+venv/
+env/
+.venv/
+venv*/
+env*/
+
+# Dear PyGui кэш (иногда появляется)
+.dpg_cache/
+
+# Python кэш
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Системные файлы macOS
+.DS_Store
+._*
+
+# Папки с IDE
+.idea/          # PyCharm
+.vscode/        # VS Code
+*.code-workspace
+
+# Логи и временные файлы
+*.log
+*.tmp
+*.temp
+
+# Если ты положишь шрифт в папку fonts — он останется (он нужен!)
+# НО если хочешь скрыть шрифты тоже — раскомментируй строку ниже
+# fonts/

@@ -4,22 +4,6 @@ import time
 import random
 import pandas as pd
 
-# ==================== Конфигурация страницы ====================
-st.set_page_config(
-    page_title="Симуляция антипаттерна Chatty I/O",
-    page_icon="📊",
-    layout="wide"
-)
-
-topo_img = Image.open("prikol.drawio.png")
-
-st.title("🖥️ Имитационное моделирование антипаттерна Chatty I/O")
-st.markdown("Курсовая работа • МГТУ им. Н.Э. Баумана • 2025")
-
-st.markdown("### 🖼️ Топология системы")
-col1, col2, col3 = st.columns([1,2,1])  # средняя колонка в 2 раза шире
-with col2:
-    st.image(topo_img, width=400)
 
 # ==================== Модели ====================
 class Params:
@@ -148,14 +132,32 @@ with st.sidebar:
     if st.button("⏹ Стоп"):
         st.session_state.running = False
 
+# ==================== Хэдер страницы ====================
+st.set_page_config(
+    page_title="Симуляция антипаттерна Chatty I/O",
+    page_icon="📊",
+    layout="wide"
+)
+
+topo_img = Image.open("prikol.drawio.png")
+
+st.title("🖥️ Имитационное моделирование антипаттерна Chatty I/O")
+st.markdown("Курсовая работа • МГТУ им. Н.Э. Баумана • 2025")
+
+st.markdown("### 🖼️ Топология системы")
+col1, col2, col3 = st.columns([1,2,1])  # средняя колонка в 2 раза шире
+with col2:
+    st.image(topo_img, width=400)
+
 # ==================== Основная часть ====================
-col1, col2 = st.columns([2, 1])
+col1, col2 = st.columns([2, 1], gap="medium")
 
 with col2:
     stats_placeholder = st.container()
 
 with col1:
-    viz_placeholder = st.container()
+    queue_placeholder = st.container()
+    servers_placeholder = st.container()
     chart_placeholder = st.container()
 
 # ==================== Симуляция и визуализация ====================
@@ -194,35 +196,35 @@ if st.session_state.running:
                 st.metric("Загрузка серверов", f"{utilization:.1f}%")
 
             # Визуализация
-            with viz_placeholder.container():
+            with queue_placeholder.container():
+                st.markdown("#### 📬 Очередь I/O")
+                queue_len = len(sim.queue)
+                progress = queue_len / sim.p.buffer_size
+                st.progress(progress)
+                st.write(f"**{queue_len} / {sim.p.buffer_size}** заявок")
 
-                col_q, col_s = st.columns([1, 2])
+                if progress > 0.8:
+                    st.error("Очередь почти переполнена!")
+                elif progress > 0.5:
+                    st.warning("Высокая нагрузка")
+                elif progress > 0.3:
+                    st.warning("Средняя нагрузка")
+                else:
+                    st.warning("Низкая нагрузка")
 
-                with col_q:
-                    st.markdown("#### 📬 Очередь I/O")
-                    queue_len = len(sim.queue)
-                    progress = queue_len / sim.p.buffer_size
-                    st.progress(progress)
-                    st.write(f"**{queue_len} / {sim.p.buffer_size}** заявок")
-
-                    if progress > 0.8:
-                        st.error("Очередь почти переполнена!")
-                    elif progress > 0.5:
-                        st.warning("Высокая нагрузка")
-
-                with col_s:
-                    st.markdown("#### 🖥️ Серверы")
-                    cols = st.columns(sim.p.servers)
-                    for i, server in enumerate(sim.servers):
-                        with cols[i]:
-                            color = "#e74c3c" if not server.is_free() else "#2ecc71"
-                            status = "ЗАНЯТ" if not server.is_free() else "СВОБОДЕН"
-                            st.markdown(f"""
-                            <div style="padding:10px; background:{color}; color:white; border-radius:10px; text-align:center;">
-                                <strong>Server {i+1}</strong><br>
-                                {status}
-                            </div>
-                            """, unsafe_allow_html=True)
+            with servers_placeholder.container():
+                st.markdown("#### 🖥️ Серверы")
+                cols = st.columns(sim.p.servers)
+                for i, server in enumerate(sim.servers):
+                    with cols[i]:
+                        color = "#e74c3c" if not server.is_free() else "#2ecc71"
+                        status = "ЗАНЯТ" if not server.is_free() else "СВОБОДЕН"
+                        st.markdown(f"""
+                        <div style="padding:10px; background:{color}; color:white; border-radius:10px; text-align:center; font-size: 10px;">
+                            <strong>Server {i+1}</strong><br>
+                            {status}
+                        </div>
+                        """, unsafe_allow_html=True)
 
             # График
             with chart_placeholder.container():

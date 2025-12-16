@@ -40,7 +40,7 @@ class Stats:
     def __init__(self):
         self.generated = 0  # Основные заявки
         self.chatty_count = 0
-        self.total_subrequests = 0  # Все подзапросы, включая основные
+        self.total_subrequests = 0  # Все запросы
         self.processed = 0
         self.rejected = 0
 
@@ -66,7 +66,7 @@ class ChattySimulator:
         self.stats = Stats()
         self.time = 0
         self.next_arrival = random.randint(params.arrival_min, params.arrival_max)
-        self.queue: List[int] = []
+        self.queue: list[int] = []
         self.servers = [Worker() for _ in range(params.servers)]
 
     def step(self):
@@ -93,7 +93,7 @@ class ChattySimulator:
         for server in self.servers:
             if server.is_free() and self.queue:
                 self.queue.pop(0)
-                duration = random.randint(self.p.service_min, self.p.service_max) + self.p.latency
+                duration = random.randint(self.p.service_min, self.p.service_max) + 2 * self.p.latency
                 server.assign(duration)
                 self.stats.processed += 1
             server.tick()
@@ -110,19 +110,19 @@ with st.sidebar:
 
     st.subheader("Трафик")
     col1, col2 = st.columns(2)
-    arrival_min = col1.number_input("Интервал min", 1, 50, 3)
-    arrival_max = col2.number_input("Интервал max", 1, 100, 12)
-    prob_chatty = st.slider("Вероятность Chatty (%)", 0.0, 1.0, 0.7, 0.05)
+    arrival_min = col1.number_input("Интервал между запросами min (сек)", 1, 50, 3)
+    arrival_max = col2.number_input("Интервал между запросами max (сек)", 1, 100, 12)
+    prob_chatty = st.slider("Вероятность Chatty запросов (%)", 0.0, 1.0, 0.7, 0.05)
+    latency = st.slider("Сетевая задержка (сек)", 0, 5, 1, 1)
 
-    st.subheader("Обработка")
+    st.subheader("Запросы")
     col1, col2 = st.columns(2)
-    service_min = col1.number_input("Время подзапроса min", 1, 30, 4)
-    service_max = col2.number_input("max", 1, 50, 12)
-    chatty_min = col1.number_input("Подзапросов min", 2, 30, 5)
-    chatty_max = col2.number_input("max", 2, 50, 15)
-    latency = st.number_input("Сетевая задержка (мс)", 0, 100, 15)
+    service_min = col1.number_input("Время обработки min (сек)", 1, 30, 4)
+    service_max = col2.number_input("Время обработки max (сек)", 1, 50, 12)
+    chatty_min = col1.number_input("Количество подзапросов min", 2, 30, 5)
+    chatty_max = col2.number_input("Количество подзапросов max", 2, 50, 15)
 
-    st.subheader("Архитектура")
+    st.subheader("Аппаратная часть")
     servers = st.slider("Количество серверов", 1, 10, 4)
     buffer_size = st.slider("Размер буфера", 5, 200, 30)
     col1, col2 = st.columns(2)
@@ -185,7 +185,7 @@ if st.session_state.running:
                 rej_prob = (s.rejected / max(total_requests, 1)) * 100 if total_requests > 0 else 0
 
                 st.metric("Время", f"{sim.time} / {sim.p.total_time} сек")
-                st.metric("Заявок всего (основных)", s.generated)
+                st.metric("Основных заявок", s.generated)
                 st.metric("Chatty заявок", s.chatty_count)
                 st.metric("Всего подзапросов", total_requests)
                 st.metric("Обработано", s.processed)
@@ -234,7 +234,7 @@ if st.session_state.running:
         time.sleep(0.001)  # Минимальная пауза, чтобы не перегружать
 
     st.session_state.running = False
-    st.success("Симуляция завершена! График сохранён ниже.")
+    st.success("Симуляция завершена! График сохранён.")
 
     # Финальный график остаётся
     with chart_placeholder.container():
@@ -251,9 +251,9 @@ if st.session_state.running:
         rej_prob = (s.rejected / max(total_requests, 1)) * 100 if total_requests > 0 else 0
 
         st.metric("Время", f"{sim.time} / {sim.p.total_time} сек")
-        st.metric("Заявок всего (основных)", s.generated)
+        st.metric("Основных заявок", s.generated)
         st.metric("Chatty заявок", s.chatty_count)
-        st.metric("Всего подзапросов", total_requests)
+        st.metric("Всего запросов", total_requests)
         st.metric("Обработано", s.processed)
         st.metric("Отказано", s.rejected)
         st.metric("Вероятность отказа", f"{rej_prob:.1f}%")

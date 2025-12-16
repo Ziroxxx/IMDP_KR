@@ -61,13 +61,13 @@ class SimulationApp:
             dpg.bind_font(main_font)
 
     def createGui(self):
-        dpg.create_viewport(title='Симуляция Chatty I/O Antipattern', width=1300, height=900)
+        dpg.create_viewport(title='Chatty I/O Antipattern simulation', width=1500, height=1000)
         
-        with dpg.window(tag="MainWindow", no_title_bar=False, no_resize=False, no_move=False):
+        with dpg.window(tag="MainWindow", no_title_bar=False, no_resize=True, no_move=True, no_close=True, pos=[0,0]):
             with dpg.group(horizontal=True):
 
                 # === Левая панель управления ===
-                with dpg.child_window(width=400, autosize_y=True, border=True):
+                with dpg.child_window(width=600, autosize_y=True, border=True, resizable_x=True):
                     dpg.add_text("Параметры симуляции", color=(0, 255, 255))
                     dpg.add_separator()
 
